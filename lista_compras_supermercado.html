@@ -1,0 +1,415 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+:root {
+  --green: #3B6D11;
+  --green-light: #EAF3DE;
+  --green-mid: #639922;
+  --amber: #BA7517;
+  --amber-light: #FAEEDA;
+  --red-col: #A32D2D;
+  --red-light: #FCEBEB;
+}
+.app { padding: 1rem 0; max-width: 420px; margin: 0 auto; }
+.header { text-align: center; margin-bottom: 1.5rem; }
+.header h1 { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.header p { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; }
+
+.budget-bar { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; border: 0.5px solid var(--color-border-tertiary); }
+.budget-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.budget-label { font-size: 13px; color: var(--color-text-secondary); flex: 1; }
+.budget-input { width: 100px; font-size: 14px; font-weight: 500; text-align: right; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 4px 8px; background: var(--color-background-primary); color: var(--color-text-primary); }
+.progress-track { background: var(--color-border-tertiary); border-radius: 99px; height: 6px; width: 100%; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; transition: width 0.4s, background 0.3s; background: #639922; }
+.budget-nums { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--color-text-secondary); }
+.budget-nums span { font-weight: 500; color: var(--color-text-primary); }
+
+.totals { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin-bottom: 1rem; }
+.stat-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 16px; }
+.stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.stat-val { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.stat-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+
+.add-section { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.add-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.add-row:last-child { margin-bottom: 0; }
+.inp-name { flex: 1; font-size: 14px; }
+.inp-cat { font-size: 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 6px 8px; background: var(--color-background-primary); color: var(--color-text-primary); }
+.inp-qty { width: 54px; font-size: 14px; text-align: center; }
+.inp-price { width: 84px; font-size: 14px; text-align: right; }
+.btn-add { background: var(--green-mid); color: #fff; border: none; border-radius: var(--border-radius-md); padding: 8px 16px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+.btn-add:hover { background: var(--green); }
+.btn-add:active { transform: scale(0.98); }
+
+.filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.filter-btn { font-size: 12px; padding: 4px 12px; border-radius: 99px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.filter-btn.active { background: var(--green-mid); color: #fff; border-color: var(--green-mid); }
+
+.list-section { }
+.cat-group { margin-bottom: 8px; }
+.cat-header { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; padding: 6px 4px 4px; }
+.item-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; transition: opacity 0.2s; }
+.item-card.checked { opacity: 0.45; }
+.item-card.checked .item-name { text-decoration: line-through; }
+.check-box { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--color-border-secondary); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: var(--color-background-primary); }
+.check-box.done { background: var(--green-mid); border-color: var(--green-mid); }
+.check-icon { color: #fff; font-size: 13px; display: none; }
+.check-box.done .check-icon { display: block; }
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-meta { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+.item-price-area { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.price-inp { width: 80px; font-size: 14px; text-align: right; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 4px 6px; background: var(--color-background-secondary); color: var(--color-text-primary); transition: border 0.15s; }
+.price-inp:focus { border-color: var(--green-mid); outline: none; }
+.price-inp.has-price { background: var(--color-background-primary); border-color: var(--color-border-secondary); font-weight: 500; }
+.item-subtotal { font-size: 13px; font-weight: 500; color: var(--color-text-primary); min-width: 60px; text-align: right; }
+.item-subtotal.zero { color: var(--color-text-secondary); }
+.btn-del { background: none; border: none; color: var(--color-text-secondary); cursor: pointer; font-size: 16px; padding: 2px; border-radius: 4px; line-height: 1; transition: color 0.15s; }
+.btn-del:hover { color: var(--red-col); }
+.empty-state { text-align: center; padding: 2rem 1rem; color: var(--color-text-secondary); font-size: 14px; }
+.caja-banner { border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; }
+.caja-banner.ok { background: var(--green-light); }
+.caja-banner.warn { background: var(--amber-light); }
+.caja-banner.over { background: var(--red-light); }
+.caja-text { font-size: 13px; }
+.caja-text strong { font-size: 20px; font-weight: 500; display: block; }
+.caja-text .ok-txt { color: var(--green); }
+.caja-text .warn-txt { color: var(--amber); }
+.caja-text .over-txt { color: var(--red-col); }
+.caja-right { text-align: right; font-size: 12px; color: var(--color-text-secondary); }
+.caja-right strong { display: block; font-size: 14px; color: var(--color-text-primary); }
+.pill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
+.pill-green { background: var(--green-light); color: var(--green); }
+.pill-amber { background: var(--amber-light); color: var(--amber); }
+.pill-red { background: var(--red-light); color: var(--red-col); }
+
+.actions-bar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+.btn-sec { font-size: 12px; padding: 6px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.btn-sec:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.sort-select { font-size: 12px; padding: 6px 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; }
+.no-items-cat { font-size: 13px; color: var(--color-text-secondary); padding: 8px 4px; }
+</style>
+
+<div class="app">
+  <h2 class="sr-only">Lista de compras del supermercado con totalizador</h2>
+
+  <div class="header">
+    <h1><i class="ti ti-shopping-cart" aria-hidden="true" style="font-size:20px;vertical-align:-3px;margin-right:6px;color:var(--green-mid)"></i>Carrito</h1>
+    <p>Agrega, tachá y no te pasás del presupuesto</p>
+  </div>
+
+  <div class="budget-bar">
+    <div class="budget-row">
+      <span class="budget-label"><i class="ti ti-wallet" aria-hidden="true" style="font-size:15px;vertical-align:-2px;margin-right:4px"></i>Presupuesto</span>
+      <input class="budget-input" type="number" id="budgetInput" placeholder="$0" value="">
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="budget-nums">
+      <span>Gastado: <span id="spentLabel">$0</span></span>
+      <span id="remainLabel">—</span>
+    </div>
+  </div>
+
+  <div class="totals">
+    <div class="stat-card">
+      <div class="stat-label"><i class="ti ti-coins" aria-hidden="true" style="font-size:14px;vertical-align:-2px;margin-right:4px"></i>Total acumulado</div>
+      <div class="stat-val" id="totalVal">$0</div>
+      <div class="stat-sub" id="pricedCount">0 productos con precio</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label"><i class="ti ti-list-check" aria-hidden="true" style="font-size:14px;vertical-align:-2px;margin-right:4px"></i>Progreso</div>
+      <div class="stat-val" id="checkedVal">0/0</div>
+      <div class="stat-sub" id="uncheckedCount">0 pendientes</div>
+    </div>
+  </div>
+
+  <div class="add-section">
+    <div class="add-row">
+      <input class="inp-name" type="text" id="newName" placeholder="Nombre del producto..." />
+      <select class="inp-cat" id="newCat">
+        <option value="Verdulería">🥦 Verdulería</option>
+        <option value="Carnicería">🥩 Carnicería</option>
+        <option value="Lácteos">🥛 Lácteos</option>
+        <option value="Almacén" selected>🛒 Almacén</option>
+        <option value="Limpieza">🧼 Limpieza</option>
+        <option value="Higiene">🪥 Higiene</option>
+        <option value="Bebidas">🧃 Bebidas</option>
+        <option value="Panadería">🍞 Panadería</option>
+        <option value="Congelados">❄️ Congelados</option>
+        <option value="Otro">📦 Otro</option>
+      </select>
+    </div>
+    <div class="add-row">
+      <input class="inp-qty" type="number" id="newQty" placeholder="Cant." min="1" value="1" />
+      <span style="font-size:13px;color:var(--color-text-secondary);">unidades</span>
+      <input class="inp-price" type="number" id="newPrice" placeholder="Precio $" step="any" min="0" style="flex:1;" />
+      <button class="btn-add" onclick="addItem()"><i class="ti ti-plus" aria-hidden="true"></i> Agregar</button>
+    </div>
+  </div>
+
+  <div class="actions-bar">
+    <button class="btn-sec" onclick="clearChecked()"><i class="ti ti-trash" aria-hidden="true" style="font-size:13px;vertical-align:-2px"></i> Quitar tachados</button>
+    <button class="btn-sec" onclick="clearAll()"><i class="ti ti-x" aria-hidden="true" style="font-size:13px;vertical-align:-2px"></i> Limpiar todo</button>
+    <select class="sort-select" id="sortSelect" onchange="renderList()">
+      <option value="cat">Agrupar por categoría</option>
+      <option value="alpha">Orden alfabético</option>
+      <option value="price-desc">Mayor precio</option>
+      <option value="added">Orden de ingreso</option>
+    </select>
+  </div>
+
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-btn active" onclick="setFilter('all',this)">Todos</button>
+  </div>
+
+  <div id="listContainer"></div>
+
+  <div id="cajaBanner" style="display:none;" class="caja-banner ok">
+    <div class="caja-text">
+      <span style="font-size:12px;color:var(--color-text-secondary);">Total a pagar</span>
+      <strong id="cajaTotal" class="ok-txt">$0</strong>
+    </div>
+    <div class="caja-right" id="cajaRight"></div>
+  </div>
+</div>
+
+<script>
+const CATS = ['Verdulería','Carnicería','Lácteos','Almacén','Limpieza','Higiene','Bebidas','Panadería','Congelados','Otro'];
+let items = JSON.parse(localStorage.getItem('carrito_items') || '[]');
+let budget = parseFloat(localStorage.getItem('carrito_budget') || '0') || 0;
+let activeFilter = 'all';
+
+const budgetInput = document.getElementById('budgetInput');
+if (budget > 0) budgetInput.value = budget;
+
+budgetInput.addEventListener('input', () => {
+  budget = parseFloat(budgetInput.value) || 0;
+  localStorage.setItem('carrito_budget', budget);
+  updateTotals();
+});
+
+document.getElementById('newName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addItem();
+});
+document.getElementById('newPrice').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addItem();
+});
+
+function fmt(n) {
+  if (n >= 1000) return '$' + Math.round(n).toLocaleString('es-AR');
+  return '$' + n.toFixed(0);
+}
+
+function addItem() {
+  const name = document.getElementById('newName').value.trim();
+  if (!name) { document.getElementById('newName').focus(); return; }
+  const cat = document.getElementById('newCat').value;
+  const qty = Math.max(1, parseInt(document.getElementById('newQty').value) || 1);
+  const price = parseFloat(document.getElementById('newPrice').value) || 0;
+  items.push({ id: Date.now(), name, cat, qty, price, checked: false });
+  save();
+  document.getElementById('newName').value = '';
+  document.getElementById('newPrice').value = '';
+  document.getElementById('newQty').value = '1';
+  document.getElementById('newName').focus();
+  renderAll();
+}
+
+function save() {
+  localStorage.setItem('carrito_items', JSON.stringify(items));
+}
+
+function toggleCheck(id) {
+  const it = items.find(i => i.id === id);
+  if (it) { it.checked = !it.checked; save(); renderAll(); }
+}
+
+function updatePrice(id, val) {
+  const it = items.find(i => i.id === id);
+  if (it) { it.price = parseFloat(val) || 0; save(); updateTotals(); updateSubtotal(id); }
+}
+
+function deleteItem(id) {
+  items = items.filter(i => i.id !== id);
+  save(); renderAll();
+}
+
+function clearChecked() {
+  items = items.filter(i => !i.checked);
+  save(); renderAll();
+}
+
+function clearAll() {
+  if (!items.length) return;
+  items = [];
+  save(); renderAll();
+}
+
+function setFilter(val, el) {
+  activeFilter = val;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+
+function updateSubtotal(id) {
+  const it = items.find(i => i.id === id);
+  if (!it) return;
+  const el = document.getElementById('sub_' + id);
+  if (el) {
+    const sub = it.price * it.qty;
+    el.textContent = sub > 0 ? fmt(sub) : '—';
+    el.className = 'item-subtotal' + (sub === 0 ? ' zero' : '');
+  }
+  updateTotals();
+}
+
+function updateTotals() {
+  const visible = activeFilter === 'all' ? items : items.filter(i => i.cat === activeFilter);
+  const priced = items.filter(i => i.price > 0);
+  const total = priced.reduce((a, i) => a + i.price * i.qty, 0);
+  const checked = items.filter(i => i.checked).length;
+
+  document.getElementById('totalVal').textContent = fmt(total);
+  document.getElementById('pricedCount').textContent = priced.length + ' producto' + (priced.length !== 1 ? 's' : '') + ' con precio';
+  document.getElementById('checkedVal').textContent = checked + '/' + items.length;
+  document.getElementById('uncheckedCount').textContent = (items.length - checked) + ' pendiente' + ((items.length - checked) !== 1 ? 's' : '');
+  document.getElementById('spentLabel').textContent = fmt(total);
+
+  if (budget > 0) {
+    const pct = Math.min(100, (total / budget) * 100);
+    const fill = document.getElementById('progressFill');
+    fill.style.width = pct + '%';
+    fill.style.background = pct >= 100 ? '#E24B4A' : pct >= 80 ? '#BA7517' : '#639922';
+    const remain = budget - total;
+    const remEl = document.getElementById('remainLabel');
+    if (remain >= 0) remEl.innerHTML = 'Restante: <span>' + fmt(remain) + '</span>';
+    else remEl.innerHTML = 'Excedido: <span style="color:#A32D2D">' + fmt(-remain) + '</span>';
+  } else {
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('remainLabel').textContent = '—';
+  }
+
+  const banner = document.getElementById('cajaBanner');
+  if (items.length > 0) {
+    banner.style.display = 'flex';
+    const ct = document.getElementById('cajaTotal');
+    const cr = document.getElementById('cajaRight');
+    ct.textContent = fmt(total);
+    let cls = 'ok-txt', bannerCls = 'caja-banner ok';
+    if (budget > 0) {
+      const pct = total / budget;
+      if (pct > 1) { cls = 'over-txt'; bannerCls = 'caja-banner over'; }
+      else if (pct > 0.8) { cls = 'warn-txt'; bannerCls = 'caja-banner warn'; }
+    }
+    ct.className = cls;
+    banner.className = bannerCls;
+    if (budget > 0) {
+      const remain = budget - total;
+      cr.innerHTML = remain >= 0
+        ? '<strong>' + fmt(remain) + '</strong>te sobra'
+        : '<strong style="color:#A32D2D">' + fmt(-remain) + '</strong>te pasaste';
+    } else {
+      const noprice = items.filter(i => i.price === 0).length;
+      cr.innerHTML = noprice > 0 ? '<strong>' + noprice + '</strong>sin precio aún' : '<strong>Todo cargado ✓</strong>';
+    }
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+function renderFilters() {
+  const cats = [...new Set(items.map(i => i.cat))];
+  const bar = document.getElementById('filterBar');
+  bar.innerHTML = '<button class="filter-btn' + (activeFilter === 'all' ? ' active' : '') + '" onclick="setFilter(\'all\',this)">Todos</button>';
+  cats.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'filter-btn' + (activeFilter === c ? ' active' : '');
+    b.textContent = c;
+    b.onclick = function() { setFilter(c, this); };
+    bar.appendChild(b);
+  });
+}
+
+function getSorted() {
+  const sort = document.getElementById('sortSelect').value;
+  let arr = [...items];
+  if (activeFilter !== 'all') arr = arr.filter(i => i.cat === activeFilter);
+  if (sort === 'alpha') arr.sort((a,b) => a.name.localeCompare(b.name, 'es'));
+  else if (sort === 'price-desc') arr.sort((a,b) => (b.price * b.qty) - (a.price * a.qty));
+  else if (sort === 'added') { /* already in order */ }
+  return arr;
+}
+
+function renderList() {
+  const container = document.getElementById('listContainer');
+  const sort = document.getElementById('sortSelect').value;
+  const arr = getSorted();
+
+  if (!arr.length) {
+    container.innerHTML = '<div class="empty-state"><i class="ti ti-shopping-cart" style="font-size:32px;display:block;margin:0 auto 8px"></i>Agregá productos arriba</div>';
+    updateTotals();
+    return;
+  }
+
+  if (sort === 'cat' && activeFilter === 'all') {
+    const bycat = {};
+    CATS.forEach(c => bycat[c] = []);
+    arr.forEach(i => { if (!bycat[i.cat]) bycat[i.cat] = []; bycat[i.cat].push(i); });
+    let html = '';
+    CATS.forEach(cat => {
+      if (!bycat[cat] || !bycat[cat].length) return;
+      html += '<div class="cat-group"><div class="cat-header">' + cat + '</div>';
+      bycat[cat].forEach(i => html += itemHTML(i));
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  } else {
+    container.innerHTML = arr.map(itemHTML).join('');
+  }
+  attachEvents();
+  updateTotals();
+}
+
+function itemHTML(i) {
+  const sub = i.price > 0 ? fmt(i.price * i.qty) : '—';
+  const subCls = i.price > 0 ? 'item-subtotal' : 'item-subtotal zero';
+  const priceInpCls = i.price > 0 ? 'price-inp has-price' : 'price-inp';
+  return `<div class="item-card${i.checked ? ' checked' : ''}" id="card_${i.id}">
+    <div class="check-box${i.checked ? ' done' : ''}" id="cb_${i.id}" data-id="${i.id}" tabindex="0" role="checkbox" aria-checked="${i.checked}" aria-label="${i.name}">
+      <i class="ti ti-check check-icon"></i>
+    </div>
+    <div class="item-info">
+      <div class="item-name">${i.name}</div>
+      <div class="item-meta">${i.qty > 1 ? 'x' + i.qty + ' · ' : ''}${i.cat}</div>
+    </div>
+    <div class="item-price-area">
+      <input class="price-inp${i.price > 0 ? ' has-price' : ''}" type="number" id="pi_${i.id}" data-id="${i.id}" value="${i.price || ''}" placeholder="$" step="any" min="0" aria-label="Precio de ${i.name}" />
+      <span class="${subCls}" id="sub_${i.id}">${sub}</span>
+    </div>
+    <button class="btn-del" data-id="${i.id}" aria-label="Eliminar ${i.name}"><i class="ti ti-x" aria-hidden="true"></i></button>
+  </div>`;
+}
+
+function attachEvents() {
+  document.querySelectorAll('.check-box').forEach(el => {
+    el.onclick = () => toggleCheck(parseInt(el.dataset.id));
+    el.onkeydown = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleCheck(parseInt(el.dataset.id)); } };
+  });
+  document.querySelectorAll('.price-inp').forEach(el => {
+    el.oninput = () => updatePrice(parseInt(el.dataset.id), el.value);
+    el.onfocus = function() { this.select(); };
+  });
+  document.querySelectorAll('.btn-del').forEach(el => {
+    el.onclick = () => deleteItem(parseInt(el.dataset.id));
+  });
+}
+
+function renderAll() {
+  renderFilters();
+  renderList();
+}
+
+renderAll();
+</script>
